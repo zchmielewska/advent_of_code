@@ -74,9 +74,9 @@ class Game:
                     max_time = max(max_time, time)
             times.append(max_time)
 
-        # I can't buy anything after 24 minutes
+        # I can't buy anything after 32 minutes
         for i in range(len(robots_to_buy)-1, -1, -1):
-            if self.minute + times[i] >= 23:
+            if self.minute + times[i] >= 31:
                 del robots_to_buy[i]
                 del times[i]
 
@@ -103,11 +103,11 @@ def solve(start_game):
         # print(f"Game at the end of the minute:\n{game}")
 
         # No point to look further if no potential to beat current max_geodes
-        minutes_left = 24 - game.minute
+        minutes_left = 32 - game.minute
         if minutes_left * game.robots[3] + game.resources[3] + (minutes_left * (minutes_left-1))/2 <= max_geodes:
             continue
 
-        if game.minute < 24:  # There is no point in building something at the end
+        if game.minute < 32:  # There is no point in building something at the end
             next_steps = game.what_to_buy_next()
             # print("next_steps (robot, mins):", next_steps)
 
@@ -136,7 +136,7 @@ def solve(start_game):
 
             # Nothing else to buy, just keep producing resources
             else:
-                remaining_minutes = 24 - game.minute
+                remaining_minutes = 32 - game.minute
                 game.produce_resources(remaining_minutes)
 
                 if game.resources[3] > max_geodes:
@@ -146,7 +146,7 @@ def solve(start_game):
     return max_geodes
 
 
-filename = "./input/19/data.txt"
+filename = "./input/19/data2.txt"
 
 pattern_text = r"Blueprint (?P<blueprint_num>\d+): " \
                r"Each ore robot costs (?P<cost_0_0>\d+) ore. " \
@@ -154,7 +154,7 @@ pattern_text = r"Blueprint (?P<blueprint_num>\d+): " \
                r"Each obsidian robot costs (?P<cost_2_0>\d+) ore and (?P<cost_2_1>\d+) clay. " \
                r"Each geode robot costs (?P<cost_3_0>\d+) ore and (?P<cost_3_2>\d+) obsidian."
 
-result = 0
+result = 1
 pattern = re.compile(pattern_text)
 with open(filename) as file:
     for line in file:
@@ -174,8 +174,7 @@ with open(filename) as file:
 
         start_game = Game(robots, costs, resources)
         max_geodes = solve(start_game)
-        quality_level = int(blueprint_num) * max_geodes
-        result += quality_level
+        result = result * max_geodes
         end = time.time()
         print(f"blueprint {blueprint_num}: max_geodes = {max_geodes}, time = {round(end-start)}, current_result = {result}")
 
