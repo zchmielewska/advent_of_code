@@ -1,8 +1,4 @@
-lines <- readLines("./input/14/example.txt", warn = FALSE)
-lines <- readLines("./input/14/data.txt", warn = FALSE)
-
-
-# functions ---------------------------------------------------------------
+lines <- readLines("./2022/14/data.txt", warn = FALSE)
 
 get_rocks_num <- function(values) {
   rocks_num <- list()
@@ -15,7 +11,7 @@ get_rocks_num <- function(values) {
 
 get_between_rocks <- function(rock1, rock2) {
   rocks <- list()
-
+  
   x1 <- rock1[[1]]
   y1 <- rock1[[2]]
   x2 <- rock2[[1]]
@@ -71,9 +67,17 @@ get_max_x <- function(all_rocks) {
   return(max)
 }
 
-rebase <- function(all_rocks, min_y) {
+rebase1 <- function(all_rocks, min_y) {
   for (i in 1:length(all_rocks)) {
     all_rocks[[i]][2] <- all_rocks[[i]][2] - min_y+1
+  }
+  return(all_rocks)
+}
+
+rebase2 <- function(all_rocks, diff_x, diff_y) {
+  for (i in 1:length(all_rocks)) {
+    all_rocks[[i]][1] <- all_rocks[[i]][1] + diff_x
+    all_rocks[[i]][2] <- all_rocks[[i]][2] + diff_y
   }
   return(all_rocks)
 }
@@ -96,20 +100,20 @@ move_one_step <- function(position, cave) {
   # down
   if (cave[position[1]+1, position[2]] == ".") {
     new_position <- c(position[1]+1, position[2])
-  
-  # left abyss
+    
+    # left abyss
   } else if (position[2]-1 == 0) {
     return(c("abyss","abyss"))
     
-  # left-down  
+    # left-down  
   } else if (cave[position[1]+1, position[2]-1] == ".") {
     new_position <- c(position[1]+1, position[2]-1)
-  
-  # right abyss
+    
+    # right abyss
   } else if (position[2]+1 == ncol(cave)+1) {
     return(c("abyss","abyss"))
     
-  # right-down
+    # right-down
   } else if (cave[position[1]+1, position[2]+1] == ".")  {
     new_position <- c(position[1]+1, position[2]+1)
   }
@@ -117,32 +121,21 @@ move_one_step <- function(position, cave) {
   return(new_position) 
 }
 
-
-# process -----------------------------------------------------------------
-
-# get all rocks
-
-all_rocks <- get_all_rocks(lines)
-min_y <- get_min_y(all_rocks)
-max_y <- get_max_y(all_rocks)
-max_x <- get_max_x(all_rocks)
-start_position <- c(1, 500-min_y+1)
-all_rocks_rebased <- rebase(all_rocks, min_y)
-
-cave <- matrix(".", nrow=max_x, ncol=max_y - min_y+1)
-for (rock in all_rocks_rebased) {
-  cave[rock[1], rock[2]] <- "#"
+get_cave <- function(max_x, max_y, min_y, all_rocks_rebased) {
+  cave <- matrix(".", nrow=max_x, ncol=max_y - min_y+1)
+  for (rock in all_rocks_rebased) {
+    cave[rock[1], rock[2]] <- "#"
+  }
+  return(cave)
 }
 
-fall_sand <- function(cave, start_position) {
+fall_sand1 <- function(cave, start_position) {
   i = 1
   while (i < 626) {
-    print(i)
     position <- start_position
     new_position <- move_one_step(position, cave)
     while (!all(position == new_position)) {
       position <- new_position
-      #print(position)
       new_position <- move_one_step(position, cave)
       if (all(new_position == c("abyss","abyss"))) {
         return(i)
@@ -151,7 +144,58 @@ fall_sand <- function(cave, start_position) {
     cave[new_position[1],  new_position[2]] <- "o"
     i = i+1
   }
+  return(i)
 }
 
+fall_sand2 <- function(cave, start_position) {
+  i = 1
+  while (TRUE) {
+    position <- start_position
+    new_position <- move_one_step(position, cave)
+    
+    if (all(new_position == start_position)) {
+      return(i)
+    }
+    
+    while (!all(position == new_position)) {
+      position <- new_position
+      new_position <- move_one_step(position, cave)
+    }
+    cave[new_position[1],  new_position[2]] <- "o"
+    i = i+1
+  }
+}
 
-result <- fall_sand(cave, start_position)-1
+solve1 <- function(lines) {
+  all_rocks <- get_all_rocks(lines)
+  min_y <- get_min_y(all_rocks)
+  max_y <- get_max_y(all_rocks)
+  max_x <- get_max_x(all_rocks)
+  start_position <- c(1, 500-min_y+1)
+  all_rocks_rebased <- rebase1(all_rocks, min_y)
+  cave <- get_cave(max_x, max_y, min_y, all_rocks_rebased)
+  result <- fall_sand1(cave, start_position)-1
+  return(result)  
+}
+
+solve2 <- function(lines) {
+  all_rocks <- get_all_rocks(lines)
+  min_y <- get_min_y(all_rocks)
+  max_y <- get_max_y(all_rocks)
+  max_x <- get_max_x(all_rocks)
+  new_max_x <- max_x + 3
+  
+  start_position <- c(1, new_max_x+1)
+  all_rocks_rebased <- rebase2(all_rocks, diff_x = 1, diff_y = -(500-new_max_x-1))
+  
+  cave <- matrix(".", nrow=new_max_x, ncol=2*new_max_x+1)
+  for (rock in all_rocks_rebased) {
+    cave[rock[1], rock[2]] <- "#"
+  }
+  cave[new_max_x, ] <- "#" 
+  result <- fall_sand2(cave, start_position)
+  return(result)
+}
+
+print(solve1(lines))  # 625
+print(solve2(lines))  # 25193

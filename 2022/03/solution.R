@@ -1,4 +1,4 @@
-data <- readLines("./input/03/data.txt", warn = FALSE)
+data <- readLines("./2022/03/data.txt", warn = FALSE)
 
 common_letter <- function(word1, word2) {
   for (i in 1:nchar(word1)) {

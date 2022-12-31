@@ -1,4 +1,4 @@
-data <- readLines("./input/04/data.txt", warn = FALSE)
+data <- readLines("./2022/04/data.txt", warn = FALSE)
 
 to_ranges <- function(line) {
   part1 <- strsplit(line, ",")[[1]][1]
