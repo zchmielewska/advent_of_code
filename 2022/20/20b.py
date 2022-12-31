@@ -75,7 +75,7 @@ for _ in range(10):
     # print(arrangement)
     # print(places)
     # print("")
-# print("--- End of round ---")
+# print("--- End of rund ---")
 # print("")
 end = time.time()
 

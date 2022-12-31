@@ -3,9 +3,6 @@ import numpy as np
 from collections import deque
 from functools import partial
 
-#filename = "./input/12/example.txt"
-filename = "./input/12/data.txt"
-
 
 def get_num_steps(final):
     i = 0
@@ -22,17 +19,13 @@ class Position:
         self.parent = parent
 
     def __repr__(self):
-        return f"p: [{self.x}, {self.y}]"
+        return f"[{self.x}, {self.y}]"
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
     def __lt__(self, other):
         return get_num_steps(self) < get_num_steps(other)
-
-
-def distance(pos1, pos2):
-    return abs(pos1.x-pos2.x) + abs(pos1.y-pos2.y)
 
 
 def get_terrain(filename):
@@ -55,12 +48,16 @@ def get_terrain(filename):
     return terrain, start, end
 
 
+def distance(pos1, pos2):
+    return abs(pos1.x - pos2.x) + abs(pos1.y - pos2.y)
+
+
 def get_moves(terrain, position):
     moves = []
     value = terrain[position.x, position.y]
 
     # right
-    if position.y < terrain.shape[1]-1:
+    if position.y < terrain.shape[1] - 1:
         move = (position.x, position.y + 1)
         if terrain[move] <= value + 1:
             moves.append(Position(move[0], move[1], position))
@@ -78,7 +75,7 @@ def get_moves(terrain, position):
             moves.append(Position(move[0], move[1], position))
 
     # down
-    if position.x < terrain.shape[0]-1:
+    if position.x < terrain.shape[0] - 1:
         move = (position.x + 1, position.y)
         if terrain[move] <= value + 1:
             moves.append(Position(move[0], move[1], position))
@@ -102,36 +99,48 @@ def search(terrain, start, end):
     return False
 
 
-terrain, start, end = get_terrain(filename)
-
-low_coordinates = [*map(tuple, np.argwhere(terrain == 1))]
-low_positions = [Position(lc[0], lc[1]) for lc in low_coordinates]
-distance_from_end = partial(distance, pos2=end)
-sorted_low_positions = sorted(low_positions, key=lambda x: distance_from_end(x))
-
-shortest_num_steps = None
-shortest_position = None
-
-for i, start in enumerate(sorted_low_positions):
-    print(f"{i}: {start}")
-
-    if shortest_num_steps is not None:
-        if distance(start, end) > shortest_num_steps:
-            continue
-
+def solve1(filename):
+    terrain, start, end = get_terrain(filename)
     final = search(terrain, start, end)
-    print(final)
-    if final is not False:
+    i = 0
+    while final.parent is not None:
+        final = final.parent
+        i += 1
+    return i
 
-        num_steps = get_num_steps(final)
 
-        if shortest_num_steps is None:
-            shortest_num_steps = num_steps
-            shortest_position = final
-        else:
-            if num_steps < shortest_num_steps:
+def solve2(filename):
+    terrain, start, end = get_terrain(filename)
+
+    low_coordinates = [*map(tuple, np.argwhere(terrain == 1))]
+    low_positions = [Position(lc[0], lc[1]) for lc in low_coordinates]
+    distance_from_end = partial(distance, pos2=end)
+    sorted_low_positions = sorted(low_positions, key=lambda x: distance_from_end(x))
+
+    shortest_num_steps = None
+    shortest_position = None
+
+    for i, start in enumerate(sorted_low_positions):
+        if shortest_num_steps is not None:
+            if distance(start, end) > shortest_num_steps:
+                continue
+
+        final = search(terrain, start, end)
+        if final is not False:
+
+            num_steps = get_num_steps(final)
+
+            if shortest_num_steps is None:
                 shortest_num_steps = num_steps
                 shortest_position = final
-                print(f"num_steps: {num_steps}")
+            else:
+                if num_steps < shortest_num_steps:
+                    shortest_num_steps = num_steps
+                    shortest_position = final
 
-print(shortest_num_steps)
+    return shortest_num_steps
+
+
+filename = "../../2022/12/data.txt"
+print(solve1(filename))  # 520
+print(solve2(filename))  # 508

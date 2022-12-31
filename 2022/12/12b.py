@@ -1,9 +1,18 @@
 import numpy as np
 
 from collections import deque
+from functools import partial
 
-filename = "./input/12/example.txt"
-filename = "./input/12/data.txt"
+#filename = "./input/12/example.txt"
+filename = "../../2022/12/data.txt"
+
+
+def get_num_steps(final):
+    i = 0
+    while final.parent is not None:
+        final = final.parent
+        i += 1
+    return i
 
 
 class Position:
@@ -13,10 +22,17 @@ class Position:
         self.parent = parent
 
     def __repr__(self):
-        return f"[{self.x}, {self.y}]"
+        return f"p: [{self.x}, {self.y}]"
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
+
+    def __lt__(self, other):
+        return get_num_steps(self) < get_num_steps(other)
+
+
+def distance(pos1, pos2):
+    return abs(pos1.x-pos2.x) + abs(pos1.y-pos2.y)
 
 
 def get_terrain(filename):
@@ -79,20 +95,43 @@ def search(terrain, start, end):
         position = search_queue.popleft()
         if position not in searched:
             if position == end:
-                return(position)
+                return position
             else:
                 search_queue += get_moves(terrain, position)
-
                 searched.append(position)
     return False
 
 
 terrain, start, end = get_terrain(filename)
-final = search(terrain, start, end)
 
-i = 0
-while final.parent is not None:
-    final = final.parent
-    i += 1
+low_coordinates = [*map(tuple, np.argwhere(terrain == 1))]
+low_positions = [Position(lc[0], lc[1]) for lc in low_coordinates]
+distance_from_end = partial(distance, pos2=end)
+sorted_low_positions = sorted(low_positions, key=lambda x: distance_from_end(x))
 
-print(i)
+shortest_num_steps = None
+shortest_position = None
+
+for i, start in enumerate(sorted_low_positions):
+    print(f"{i}: {start}")
+
+    if shortest_num_steps is not None:
+        if distance(start, end) > shortest_num_steps:
+            continue
+
+    final = search(terrain, start, end)
+    print(final)
+    if final is not False:
+
+        num_steps = get_num_steps(final)
+
+        if shortest_num_steps is None:
+            shortest_num_steps = num_steps
+            shortest_position = final
+        else:
+            if num_steps < shortest_num_steps:
+                shortest_num_steps = num_steps
+                shortest_position = final
+                print(f"num_steps: {num_steps}")
+
+print(shortest_num_steps)

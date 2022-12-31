@@ -1,5 +1,5 @@
-data <- readLines("./input/02/example.txt")
-#data <- readLines("./input/02/data.txt")
+#data <- readLines("./input/02/example.txt")
+data <- readLines("./input/02/data.txt")
 
 get_shape <- function(letter) {
   if (letter == "A" | letter == "X") {
