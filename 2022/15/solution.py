@@ -1,8 +1,6 @@
+import os
 import numpy as np
 import re
-
-
-from functools import partial
 
 
 np.set_printoptions(linewidth=200)
@@ -31,9 +29,37 @@ class Pair:
         self.sensor = sensor
         self.beacon = beacon
         self.distance = manhattan_distance((sensor.row, sensor.col), (beacon.row, beacon.col))
+        self.border = None
 
     def __repr__(self):
         return f"[{self.sensor.row}, {self.sensor.col}, {self.distance}]"
+
+    def get_border(self):
+        border = set()
+        for e, i in enumerate(range(self.sensor.row, self.sensor.row + self.distance + 2)):
+            if i >= 0:
+                col1 = self.sensor.col - (self.distance + 1) + e
+                if col1 >= 0:
+                    point1 = (i, col1)
+                    border.add(point1)
+
+                col2 = self.sensor.col + (self.distance + 1) - e
+                if col2 >= 0:
+                    point2 = (i, col2)
+                    border.add(point2)
+
+        for e, i in enumerate(range(self.sensor.row, self.sensor.row - self.distance - 2, -1)):
+            if i >= 0:
+                col1 = self.sensor.col - (self.distance + 1) + e
+                if col1 >= 0:
+                    point1 = (i, col1)
+                    border.add(point1)
+
+                col2 = self.sensor.col + (self.distance + 1) - e
+                if col2 >= 0:
+                    point2 = (i, col2)
+                    border.add(point2)
+        self.border = border
 
 
 def get_pairs(filename):
@@ -54,15 +80,9 @@ def get_pairs(filename):
 def get_edges(pairs, func):
     row = func(pairs[0].sensor.row, pairs[0].sensor.row + pairs[0].distance, pairs[0].sensor.row - pairs[0].distance)
     col = func(pairs[0].sensor.col, pairs[0].sensor.col + pairs[0].distance, pairs[0].sensor.col - pairs[0].distance)
-    # row = func(pairs[0].sensor.row, pairs[0].beacon.row)
-    # col = func(pairs[0].sensor.col, pairs[0].beacon.col)
-
     for pair in pairs:
         row = func(row, pair.sensor.row, pair.sensor.row + pair.distance, pair.sensor.row - pair.distance)
         col = func(col, pair.sensor.col, pair.sensor.col + pair.distance, pair.sensor.col - pair.distance)
-        # row = func(row, pair.sensor.row, pair.beacon.row)
-        # col = func(col, pair.sensor.col, pair.beacon.col)
-
     return row, col
 
 
@@ -89,7 +109,7 @@ def get_indices(nrow, ncol):
     return indices
 
 
-def solve(filename, y):
+def solve1(filename, y):
     pairs1 = get_pairs(filename)
 
     # Pairs which signal intersects with row y
@@ -114,11 +134,36 @@ def solve(filename, y):
         if pair.sensor.row == y and pair.sensor.col in occupied:
             occupied.remove(pair.sensor.col)
 
-    return occupied
+    return len(occupied)
 
 
-result = solve(filename="./input/15/example.txt", y=10)
-print(len(result))
+def solve2(filename, limit):
+    chosen_point = None
 
-result = solve(filename="./input/15/data.txt", y=2000000)
-print(len(result))
+    pairs = get_pairs(filename)
+    for pair in pairs:
+        pair.get_border()
+
+    for border_pair in pairs:
+        for point in border_pair.border:
+            row, col = point
+            if row > limit or col > limit:
+                continue
+
+            result = 1
+            for area_pair in pairs:
+                if manhattan_distance(point, (area_pair.sensor.row, area_pair.sensor.col)) <= area_pair.distance:
+                    result = 0
+                    break
+
+            if result == 1:
+                chosen_point = point
+                break
+
+    tuning_frequency = chosen_point[1] * 4000000 + chosen_point[0]
+    return tuning_frequency
+
+
+filename = os.path.join(os.path.dirname(__file__), "data.txt")
+print(solve1(filename, y=2000000))  # 5125700
+print(solve2(filename, limit=4_000_000))  # 11379394658764
