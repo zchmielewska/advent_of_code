@@ -1,4 +1,4 @@
-filename = "./input/25/data.txt"
+import os
 
 
 def snafu_to_decimal(value):
@@ -35,10 +35,15 @@ def decimal_to_snafu(value):
     return result
 
 
-snafus = []
-with open(filename) as file:
-    for line in file:
-        snafus.append(line.rstrip('\n'))
+def solve(filename):
+    snafus = []
+    with open(filename) as file:
+        for line in file:
+            snafus.append(line.rstrip('\n'))
 
-total = sum([snafu_to_decimal(snafu) for snafu in snafus])
-print(decimal_to_snafu(total))
+    total = sum([snafu_to_decimal(snafu) for snafu in snafus])
+    return decimal_to_snafu(total)
+
+
+filename = os.path.join(os.path.dirname(__file__), "data.txt")
+print(solve(filename))  # 2-1=10=1=1==2-1=-221
