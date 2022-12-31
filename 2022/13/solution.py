@@ -1,8 +1,5 @@
 import numpy as np
-
-
-filename = "./input/13/example2.txt"
-filename = "./input/13/data2.txt"
+import os
 
 
 def lower_than(packet1, packet2):
@@ -47,12 +44,36 @@ class Packet:
         return f"{self.value}"
 
 
-packets = []
-with open(filename) as file:
-    for line in file:
-        if line.strip() != "":
-            packets.append(Packet(eval(line)))
+def solve1(filename):
+    j = 0
+    results = []
+    with open(filename) as file:
+        for line in file:
+            if j % 3 == 0:
+                packet1 = eval(line)
+            elif j % 3 == 1:
+                packet2 = eval(line)
+                result = lower_than(packet1, packet2)
+                results.append(result)
+            j += 1
 
-packets = sorted(packets)
-indices = [i+1 for i, v in enumerate(packets) if v.value == [[2]] or v.value == [[6]]]
-print(np.prod(indices))
+    indices = [i+1 for i, v in enumerate(results) if v == 1]
+    return sum(indices)
+
+
+def solve2(filename):
+    packets = []
+    with open(filename) as file:
+        for line in file:
+            if line.strip() != "":
+                packets.append(Packet(eval(line)))
+
+    packets = sorted(packets)
+    indices = [i+1 for i, v in enumerate(packets) if v.value == [[2]] or v.value == [[6]]]
+    return np.prod(indices)
+
+
+filename1 = os.path.join(os.path.dirname(__file__), "data1.txt")
+filename2 = os.path.join(os.path.dirname(__file__), "data2.txt")
+print(solve1(filename1))  # 5825
+print(solve2(filename2))  # 24477
