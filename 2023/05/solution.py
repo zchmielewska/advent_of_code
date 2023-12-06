@@ -108,9 +108,8 @@ def solve2(filename):
         i += 1
         if is_in_seeds(value, extended_seeds):
             result = value
-
     return i-1
 
 
-print(solve1("example.txt"))
-print(solve2("example.txt"))
+print(solve1("data.txt"))
+print(solve2("data.txt"))
