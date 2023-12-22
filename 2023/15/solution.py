@@ -21,7 +21,6 @@ def solve1(filename):
     return total
 
 
-# print(solve1("data.txt"))
 def remove(label, box):
     index_to_remove = next((index for index, (string, _) in enumerate(box) if string == label), None)
     if index_to_remove is not None:
@@ -41,54 +40,48 @@ def print_boxes(boxes):
         if len(value) > 0:
             print(f"Box {key}: {value}")
 
-# Initiate boxes
-boxes = dict()
-for n in range(256):
-    boxes[n] = []
 
-# print(boxes)
+def solve2(filename):
+    # Initiate boxes
+    boxes = dict()
+    for n in range(256):
+        boxes[n] = []
 
-filename = "data.txt"
-with open(filename) as file:
-    lines = file.readlines()
-steps = lines[0].split(",")
+    with open(filename) as file:
+        lines = file.readlines()
+    steps = lines[0].split(",")
 
+    for step in steps:
+        # Remove lens
+        if "-" in step:
+            label = step[:-1]
+            box_num = _hash(label)
+            box = boxes[box_num]
+            boxes[box_num] = remove(label, box)
 
-step = steps[0]
-
-
-for step in steps:
-    # Remove lens
-    if "-" in step:
-        label = step[:-1]
-        box_num = _hash(label)
-        box = boxes[box_num]
-        boxes[box_num] = remove(label, box)
-
-    # Add lens
-    else:
-        label, focal_length = step.split("=")
-        focal_length = int(focal_length)
-        box_num = _hash(label)
-        box = boxes[box_num]
-
-        i = index_of_label(label, box)
-        if i is not None:
-            boxes[box_num][i] = (label, focal_length)
+        # Add lens
         else:
-            boxes[box_num].append((label, focal_length))
+            label, focal_length = step.split("=")
+            focal_length = int(focal_length)
+            box_num = _hash(label)
+            box = boxes[box_num]
 
-    # print("\nStep:", step)
-    # print_boxes(boxes)
+            i = index_of_label(label, box)
+            if i is not None:
+                boxes[box_num][i] = (label, focal_length)
+            else:
+                boxes[box_num].append((label, focal_length))
+
+    focusing_power = 0
+    for box_num, box in boxes.items():
+        for i, lens in enumerate(box):
+            factor1 = box_num + 1
+            factor2 = i + 1
+            factor3 = lens[1]
+            focusing_power += factor1 * factor2 * factor3
+
+    return focusing_power
 
 
-
-focusing_power = 0
-for box_num, box in boxes.items():
-    for i, lens in enumerate(box):
-        factor1 = box_num + 1
-        factor2 = i + 1
-        factor3 = lens[1]
-        focusing_power += factor1 * factor2 * factor3
-
-print(focusing_power)
+print(solve1("data.txt"))
+print(solve2("data.txt"))
